@@ -1,0 +1,21 @@
+.alphabetpicker-data {
+
+  .x-view-item-focused {
+    outline: none !important;
+  }
+
+  .alphabetpicker-item {
+
+    .alphabetpicker-item-icon {
+      visibility: hidden;
+    }
+
+    &.x-item-selected {
+      color: $base-color;
+
+      .alphabetpicker-item-icon {
+        visibility: visible;
+      }
+    }
+  }
+}
