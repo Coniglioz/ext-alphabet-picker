@@ -207,6 +207,7 @@ Ext.define('Ext.ux.AlphabetPicker', {
                 margin: 10,
                 flex: 1,
                 preserveScrollOnRefresh: true,
+                scrollable: 'vertical',
                 selectionModel: {
                     mode: 'SIMPLE',
                     allowDeselect: true
@@ -270,7 +271,8 @@ Ext.define('Ext.ux.AlphabetPicker', {
         var me = this;
         me.dataViewStore.clearFilter(true);
         me.dataViewStore.filterBy(function (record) {
-            return newValue[0].indexOf(record.get(me.displayField).charAt(0).toLowerCase()) !== -1;
+            var displayString = record.get(me.displayField);
+            return displayString.length && newValue[0].indexOf(displayString.charAt(0).toLowerCase()) !== -1;
         });
     },
 
