@@ -61,6 +61,7 @@ Ext.define('MyApp.view.main.Main', {
     },
 
     defaults: {
+        layout: 'fit',
         bodyPadding: 20,
         tabConfig: {
             plugins: 'responsive',
@@ -99,6 +100,20 @@ Ext.define('MyApp.view.main.Main', {
             text: 'Select people',
             scale: 'large',
             handler: 'onSelectClick'
+        }]
+    }, {
+        title: 'Ex 3',
+        iconCls: 'fa-user',
+        items: [{
+            xtype: 'alphabetpicker',
+            enableListView: true,
+            store: {
+                type: 'personnel'
+            },
+            bind: {
+                selection: '{selected}'
+            },
+            displayField: 'name'
         }]
     }]
 });
