@@ -1,6 +1,6 @@
 by Federico Baron
 
-v: 1.0
+v: 1.2
 
 w: https://www.ibuildings.it
 t: federico.baron
