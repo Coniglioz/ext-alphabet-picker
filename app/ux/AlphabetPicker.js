@@ -12,8 +12,7 @@ Ext.define('Ext.ux.AlphabetPicker', {
     requires: [
         'Ext.button.Segmented',
         'Ext.view.View',
-        'Ext.form.field.Tag',
-        'MyApp.store.Personnel'
+        'Ext.form.field.Tag'
     ],
 
     cls: 'alphabetpicker',
@@ -96,7 +95,37 @@ Ext.define('Ext.ux.AlphabetPicker', {
          * @cfg {String} [itemTagsLabel]
          * Field label of the tag component.
          */
-        itemTagsLabel: "Selected"
+        itemTagsLabel: "Selected",
+
+        /**
+         * @cfg {Boolean} [enableListView]
+         * 'true' to enable list view switch.
+         */
+        enableListView: false,
+
+        /**
+         * @cfg {String} [alphabetViewIconCls]
+         * Alphabet view icon CSS class. Visible only if enableListView is 'true'.
+         */
+        alphabetViewIconCls: 'fa fa-sort-alpha-asc',
+
+        /**
+         * @cfg {String} [listViewIconCls]
+         * List view icon CSS class. Visible only if enableListView is 'true'.
+         */
+        listViewIconCls: 'fa fa-list',
+
+        /**
+         * @cfg {Number} [defaultUI]
+         * Default ui to use for switch view buttons.
+         */
+        viewBtnDefaultUI: 'default',
+
+        /**
+         * @cfg {Number} [defaultScale]
+         * Default scale to use for switch view buttons.
+         */
+        viewBtnDefaultScale: 'small'
     },
 
     /**
@@ -160,7 +189,11 @@ Ext.define('Ext.ux.AlphabetPicker', {
             fields: [me.valueField, me.displayField],
             data: mainStore.getRange().map(function (rec) {
                 return rec.getData();
-            })
+            }),
+            sorters: [{
+                property: me.displayField,
+                direction: 'ASC'
+            }]
         });
         mainStore.on('datachanged', function (store) {
             me.dataViewStore.loadData(store.getRange().map(function (rec) {
@@ -174,24 +207,59 @@ Ext.define('Ext.ux.AlphabetPicker', {
                 align: 'stretch'
             },
             items: [{
-                xtype: 'tagfield',
-                cls: 'alphabetpicker-tags',
-                fieldLabel: me.itemTagsLabel,
+                xtype: 'container',
                 margin: '0 10 10 10',
-                labelAlign: 'top',
-                hideTrigger: true,
-                store: mainStore,
-                displayField: me.displayField,
-                valueField: me.valueField,
-                queryMode: 'local',
-                listeners: {
-                    change: me.onItemTagsChange,
-                    beforeselect: me.onTagsBeforeSelect,
-                    beforedeselect: me.onTagsBeforeDeselect,
-                    scope: me
-                }
+                layout: {
+                    type: 'hbox',
+                    align: 'begin'
+                },
+                items: [{
+                    xtype: 'tagfield',
+                    cls: 'alphabetpicker-tags',
+                    flex: 1,
+                    fieldLabel: me.itemTagsLabel,
+                    labelAlign: 'top',
+                    hideTrigger: true,
+                    store: mainStore,
+                    displayField: me.displayField,
+                    valueField: me.valueField,
+                    queryMode: 'local',
+                    listeners: {
+                        change: me.onItemTagsChange,
+                        beforeselect: me.onTagsBeforeSelect,
+                        beforedeselect: me.onTagsBeforeDeselect,
+                        scope: me
+                    }
+                }, {
+                    xtype: 'fieldcontainer',
+                    fieldLabel: '&nbsp;',
+                    labelAlign: 'top',
+                    labelSeparator: '',
+                    fieldBodyCls: 'alphabetpicker-tags-view-buttons',
+                    hidden: !me.enableListView,
+                    items: [{
+                        xtype: 'segmentedbutton',
+                        forceSelection: true,
+                        items: [{
+                            iconCls: me.alphabetViewIconCls,
+                            scale: me.viewBtnDefaultScale,
+                            ui: me.viewBtnDefaultUI,
+                            value: 'alphabet'
+                        }, {
+                            iconCls: me.listViewIconCls,
+                            scale: me.viewBtnDefaultScale,
+                            ui: me.viewBtnDefaultUI,
+                            value: 'list'
+                        }],
+                        listeners: {
+                            change: me.onViewChange,
+                            scope: me
+                        }
+                    }]
+                }]
             }, {
                 xtype: 'segmentedbutton',
+                itemId: 'alphabetMenu',
                 cls: 'alphabetpicker-menu',
                 forceSelection: true,
                 items: buttons,
@@ -215,11 +283,16 @@ Ext.define('Ext.ux.AlphabetPicker', {
                 store: me.dataViewStore,
                 tpl: new Ext.XTemplate(
                     '<tpl for=".">',
-                    '<div class="alphabetpicker-item" id="{' + me.valueField + '}-alphabetpicker" style="width: ' + (100 / me.columns) + '%; padding: 8px; float: left; cursor: pointer;">',
+                    '<div class="alphabetpicker-item" id="{' + me.valueField + '}-alphabetpicker" style="width: {[this.calculateWidth()]}; padding: 8px; float: left; cursor: pointer;">',
                     '<i class="alphabetpicker-item-icon ' + me.iconCls + '" style="margin: 0 5px;"></i>',
                     '<span class="alphabetpicker-item-label">{' + me.displayField + '}</span>',
                     '</div>',
-                    '</tpl>'
+                    '</tpl>',
+                    {
+                        calculateWidth: function () {
+                            return (100 / me.columns) + '%';
+                        }
+                    }
                 ),
                 itemSelector: 'div.alphabetpicker-item',
                 listeners: {
@@ -234,7 +307,7 @@ Ext.define('Ext.ux.AlphabetPicker', {
 
         me.callParent();
 
-        me.menu = me.down('segmentedbutton');
+        me.menu = me.down('#alphabetMenu');
         me.itemTags = me.down('tagfield');
         me.dataView = me.down('#dataView');
 
@@ -261,6 +334,34 @@ Ext.define('Ext.ux.AlphabetPicker', {
 
         if (me.rendered) {
             me.publishState('selection', me.getSelection());
+        }
+    },
+
+    /**
+     * @private
+     */
+    onViewChange: function (segmented, newValue) {
+        var me = this;
+
+        switch (newValue[0]) {
+            case 'alphabet':
+                me.menu.setVisible(true);
+                if (me.currentAlphabetFilters) {
+                    me.dataViewStore.addFilter(me.currentAlphabetFilters, true);
+                    me.columns = me.currentColumns;
+                    me.dataView.refresh();
+                    delete me.currentAlphabetFilters;
+                    delete me.currentColumns;
+                }
+                break;
+            case 'list':
+                me.menu.setVisible(false);
+                me.currentAlphabetFilters = me.dataViewStore.getFilters().getRange();
+                me.currentColumns = me.columns;
+                me.dataViewStore.clearFilter(true);
+                me.columns = 1;
+                me.dataView.refresh();
+                break;
         }
     },
 

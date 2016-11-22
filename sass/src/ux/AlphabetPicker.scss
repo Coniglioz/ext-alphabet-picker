@@ -1,3 +1,7 @@
+.alphabetpicker-tags-view-buttons {
+  border: 1px solid transparent;
+}
+
 .alphabetpicker-data {
 
   .x-view-item-focused {
@@ -5,6 +9,10 @@
   }
 
   .alphabetpicker-item {
+
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 
     .alphabetpicker-item-icon {
       visibility: hidden;

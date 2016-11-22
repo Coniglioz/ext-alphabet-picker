@@ -16,6 +16,7 @@ Ext.define('MyApp.view.main.Main', {
 
         'MyApp.view.main.MainController',
         'MyApp.view.main.MainModel',
+        'MyApp.store.Personnel',
 
         'Ext.ux.AlphabetPicker'
     ],
